@@ -5,8 +5,10 @@ from unittest.mock import patch
 
 def test_version():
     from philips_airctrl import __version__
+    from philips_airctrl._version import __version__ as direct_version
 
-    assert __version__ == "0.4.0"
+    assert isinstance(__version__, str)
+    assert __version__ == direct_version
 
 
 def test_exports():
