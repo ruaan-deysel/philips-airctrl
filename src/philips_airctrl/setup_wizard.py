@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING
 
 import click
 import yaml
@@ -13,7 +13,9 @@ from tabulate import tabulate
 
 from philips_airctrl.device_info import DeviceInfoExtractor
 from philips_airctrl.discovery import DeviceDiscovery
-from philips_airctrl.models import DeviceInfo, DeviceReport
+
+if TYPE_CHECKING:
+    from philips_airctrl.models import DeviceInfo, DeviceReport
 
 
 class SetupWizard:
@@ -106,9 +108,7 @@ class SetupWizard:
                 if 1 <= choice <= len(self.discovered_devices):
                     self.selected_device = self.discovered_devices[choice - 1]
                     break
-                click.echo(
-                    f"Please enter a number between 1 and {len(self.discovered_devices)}"
-                )
+                click.echo(f"Please enter a number between 1 and {len(self.discovered_devices)}")
             except (ValueError, click.Abort):
                 click.echo("Invalid selection. Please try again.")
 
@@ -220,13 +220,15 @@ class SetupWizard:
 
         for device in self.discovered_devices:
             signal = f"{device.status.get('rssi', 'N/A')} dBm" if device.status else "N/A"
-            rows.append([
-                device.ip,
-                device.model or "Unknown",
-                device.name or "Unknown",
-                device.firmware_version or "Unknown",
-                signal,
-            ])
+            rows.append(
+                [
+                    device.ip,
+                    device.model or "Unknown",
+                    device.name or "Unknown",
+                    device.firmware_version or "Unknown",
+                    signal,
+                ]
+            )
 
         click.echo()
         click.echo(tabulate(rows, headers=headers, tablefmt="grid"))

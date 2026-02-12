@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import contextlib
 import json
 import logging
 import sys
@@ -225,13 +226,15 @@ async def handle_discover_command(args: argparse.Namespace) -> None:
 
     for device in devices:
         signal = f"{device.status.get('rssi', 'N/A')} dBm" if device.status else "N/A"
-        rows.append([
-            device.ip,
-            device.model or "Unknown",
-            device.name or "Unknown",
-            device.firmware_version or "Unknown",
-            signal,
-        ])
+        rows.append(
+            [
+                device.ip,
+                device.model or "Unknown",
+                device.name or "Unknown",
+                device.firmware_version or "Unknown",
+                signal,
+            ]
+        )
 
     print(tabulate(rows, headers=headers, tablefmt="grid"))
     print()
@@ -330,7 +333,5 @@ async def async_main() -> None:
 
 
 def main() -> None:
-    try:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(async_main())
-    except KeyboardInterrupt:
-        pass

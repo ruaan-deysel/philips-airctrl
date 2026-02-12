@@ -24,5 +24,5 @@ def test_coap_init_export():
 
 
 def test_main_module():
-    with patch("philips_airctrl.cli.main") as mock_main:
+    with patch("philips_airctrl.cli.main"):
         import philips_airctrl.__main__  # noqa: F401

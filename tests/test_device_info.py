@@ -1,6 +1,6 @@
 """Tests for the device_info module."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 import yaml
@@ -16,7 +16,7 @@ from philips_airctrl.device_info import (
     generate_ha_config,
     get_field_category,
 )
-from philips_airctrl.models import DeviceCapabilities, DeviceReport, FieldDefinition
+from philips_airctrl.models import DeviceReport, FieldDefinition
 
 
 class TestGetFieldCategory:
@@ -252,7 +252,7 @@ class TestDeviceInfoExtractor:
 
 class TestDeviceFieldsDefinitions:
     def test_all_fields_have_required_attributes(self):
-        for key, field in DEVICE_FIELDS.items():
+        for _key, field in DEVICE_FIELDS.items():
             assert isinstance(field, FieldDefinition)
             assert field.name
             assert field.type in ("string", "integer", "boolean")

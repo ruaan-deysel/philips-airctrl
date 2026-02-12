@@ -1,6 +1,5 @@
 """Tests for the discovery module."""
 
-import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -20,9 +19,7 @@ class TestDeviceDiscovery:
 
     def test_get_network_ranges(self):
         mock_interfaces = ["lo", "eth0"]
-        mock_addrs = {
-            2: [{"addr": "192.168.1.100", "netmask": "255.255.255.0"}]
-        }
+        mock_addrs = {2: [{"addr": "192.168.1.100", "netmask": "255.255.255.0"}]}
 
         with (
             patch("philips_airctrl.discovery.netifaces.interfaces", return_value=mock_interfaces),
@@ -44,9 +41,7 @@ class TestDeviceDiscovery:
             assert ranges == []
 
     def test_get_network_ranges_skips_127(self):
-        mock_addrs = {
-            2: [{"addr": "127.0.0.1", "netmask": "255.0.0.0"}]
-        }
+        mock_addrs = {2: [{"addr": "127.0.0.1", "netmask": "255.0.0.0"}]}
 
         with (
             patch("philips_airctrl.discovery.netifaces.interfaces", return_value=["lo0"]),
@@ -68,9 +63,7 @@ class TestDeviceDiscovery:
             assert ranges == []
 
     def test_get_network_ranges_invalid_network(self):
-        mock_addrs = {
-            2: [{"addr": "invalid", "netmask": "invalid"}]
-        }
+        mock_addrs = {2: [{"addr": "invalid", "netmask": "invalid"}]}
 
         with (
             patch("philips_airctrl.discovery.netifaces.interfaces", return_value=["eth0"]),
@@ -82,17 +75,13 @@ class TestDeviceDiscovery:
             assert ranges == []
 
     def test_get_network_ranges_exception(self):
-        with patch(
-            "philips_airctrl.discovery.netifaces.interfaces", side_effect=Exception("fail")
-        ):
+        with patch("philips_airctrl.discovery.netifaces.interfaces", side_effect=Exception("fail")):
             discovery = DeviceDiscovery()
             ranges = discovery.get_network_ranges()
             assert ranges == ["192.168.1.0/24", "192.168.0.0/24", "10.0.0.0/24"]
 
     def test_get_network_ranges_missing_addr(self):
-        mock_addrs = {
-            2: [{"netmask": "255.255.255.0"}]
-        }
+        mock_addrs = {2: [{"netmask": "255.255.255.0"}]}
 
         with (
             patch("philips_airctrl.discovery.netifaces.interfaces", return_value=["eth0"]),
@@ -169,7 +158,7 @@ class TestDeviceDiscovery:
             patch("philips_airctrl.discovery.socket.socket") as mock_sock_class,
             patch(
                 "philips_airctrl.discovery.Client.create",
-                side_effect=asyncio.TimeoutError(),
+                side_effect=TimeoutError(),
             ),
         ):
             mock_sock = MagicMock()
@@ -226,9 +215,7 @@ class TestDeviceDiscovery:
     @pytest.mark.asyncio
     async def test_discover_devices_uses_default_networks(self):
         with (
-            patch.object(
-                DeviceDiscovery, "get_network_ranges", return_value=["192.168.1.0/30"]
-            ),
+            patch.object(DeviceDiscovery, "get_network_ranges", return_value=["192.168.1.0/30"]),
             patch.object(DeviceDiscovery, "scan_ip", return_value=None),
         ):
             discovery = DeviceDiscovery()

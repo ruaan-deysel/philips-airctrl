@@ -41,9 +41,7 @@ class DeviceDiscovery:
 
                         if ip and netmask and not ip.startswith("127."):
                             try:
-                                network = ipaddress.IPv4Network(
-                                    f"{ip}/{netmask}", strict=False
-                                )
+                                network = ipaddress.IPv4Network(f"{ip}/{netmask}", strict=False)
                                 networks.append(str(network))
                             except (ipaddress.AddressValueError, ValueError):
                                 continue
@@ -102,7 +100,7 @@ class DeviceDiscovery:
                 finally:
                     await client.shutdown()
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 logger.debug("Timeout connecting to %s", ip)
                 return None
             except Exception as e:
@@ -113,9 +111,7 @@ class DeviceDiscovery:
             logger.debug("Error scanning %s: %s", ip, e)
             return None
 
-    async def discover_devices(
-        self, networks: list[str] | None = None
-    ) -> list[DeviceInfo]:
+    async def discover_devices(self, networks: list[str] | None = None) -> list[DeviceInfo]:
         """Discover all Philips air purifier devices on the network."""
         if networks is None:
             networks = self.get_network_ranges()

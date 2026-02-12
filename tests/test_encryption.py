@@ -2,7 +2,7 @@
 
 import pytest
 
-from philips_airctrl.coap.encryption import DigestMismatchException, EncryptionContext
+from philips_airctrl.coap.encryption import DigestMismatchError, EncryptionContext
 
 
 class TestEncryptionContext:
@@ -54,16 +54,16 @@ class TestEncryptionContext:
         encrypted = ctx.encrypt("test data")
         corrupted = encrypted[:-64] + "0" * 64
 
-        with pytest.raises(DigestMismatchException):
+        with pytest.raises(DigestMismatchError):
             ctx.decrypt(corrupted)
 
     def test_decrypt_malformed_payload(self):
         ctx = EncryptionContext()
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, DigestMismatchError)):
             ctx.decrypt("short")
 
-        with pytest.raises(Exception):
+        with pytest.raises((ValueError, DigestMismatchError)):
             ctx.decrypt("ZZZZZZZZ" + "A" * 64 + "B" * 64)
 
     def test_multiple_encryptions_different_results(self):
@@ -79,7 +79,7 @@ class TestEncryptionContext:
         assert ctx.decrypt(encrypted2) == payload
 
     def test_secret_key_constant(self):
-        assert EncryptionContext.SECRET_KEY == "JiangPan"
+        assert EncryptionContext.SECRET_KEY == "JiangPan"  # noqa: S105
 
     def test_encryption_format(self):
         ctx = EncryptionContext()

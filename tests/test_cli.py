@@ -14,7 +14,7 @@ from philips_airctrl.cli import (
     main,
     parse_args,
 )
-from philips_airctrl.models import DeviceInfo, DeviceReport, ConnectionInfo
+from philips_airctrl.models import DeviceInfo, DeviceReport
 
 
 class TestParseArgs:
@@ -184,9 +184,7 @@ class TestAsyncMain:
 
             await async_main()
 
-            mock_client.set_control_values.assert_called_once_with(
-                data={"speed": 3, "level": 5}
-            )
+            mock_client.set_control_values.assert_called_once_with(data={"speed": 3, "level": 5})
 
     @pytest.mark.asyncio
     async def test_set_boolean_false(self):
@@ -331,7 +329,7 @@ class TestAsyncMain:
             patch("philips_airctrl.cli.parse_args") as mock_parse,
             patch("philips_airctrl.cli.CoAPClient.create", return_value=mock_client),
             patch("builtins.print") as mock_print,
-            patch("sys.stdout") as mock_stdout,
+            patch("sys.stdout"),
         ):
             mock_args = MagicMock()
             mock_args.host = "192.168.1.100"
@@ -382,7 +380,9 @@ class TestAsyncMain:
         with (
             patch("philips_airctrl.cli.parse_args") as mock_parse,
             patch("philips_airctrl.cli.CoAPClient.create", return_value=mock_client),
-            patch("philips_airctrl.cli.handle_device_info_command", new_callable=AsyncMock) as mock_hdi,
+            patch(
+                "philips_airctrl.cli.handle_device_info_command", new_callable=AsyncMock
+            ) as mock_hdi,
         ):
             mock_args = MagicMock()
             mock_args.host = "192.168.1.100"
@@ -505,7 +505,7 @@ class TestHandleDeviceInfoCommand:
 
         with (
             patch("philips_airctrl.cli.DeviceInfoExtractor", return_value=mock_extractor),
-            patch("builtins.print") as mock_print,
+            patch("builtins.print"),
         ):
             args = MagicMock()
             args.host = "192.168.1.100"

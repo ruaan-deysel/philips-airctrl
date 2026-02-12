@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
@@ -27,9 +26,7 @@ logger = logging.getLogger(__name__)
 DEVICE_FIELDS: dict[str, FieldDefinition] = {
     # Device identification
     "D01S03": FieldDefinition(name="device_name", type="string", description="Device name"),
-    "D01S04": FieldDefinition(
-        name="device_nickname", type="string", description="Device nickname"
-    ),
+    "D01S04": FieldDefinition(name="device_nickname", type="string", description="Device nickname"),
     "D01S05": FieldDefinition(name="model_number", type="string", description="Model number"),
     "D01S0D": FieldDefinition(name="serial_number", type="string", description="Serial number"),
     "D01S12": FieldDefinition(
@@ -54,23 +51,15 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
         name="temperature", type="integer", description="Temperature (\u00b0C)"
     ),
     "D0110F": FieldDefinition(name="language", type="integer", description="Language setting"),
-    "D01213": FieldDefinition(
-        name="child_lock", type="integer", description="Child lock status"
-    ),
+    "D01213": FieldDefinition(name="child_lock", type="integer", description="Child lock status"),
     # Air quality and sensors
     "D03102": FieldDefinition(name="power", type="boolean", description="Power on/off"),
-    "D03103": FieldDefinition(
-        name="pm25_sensor", type="integer", description="PM2.5 sensor value"
-    ),
+    "D03103": FieldDefinition(name="pm25_sensor", type="integer", description="PM2.5 sensor value"),
     "D03105": FieldDefinition(
         name="allergen_sensor", type="integer", description="Allergen sensor value"
     ),
-    "D03106": FieldDefinition(
-        name="gas_sensor", type="integer", description="Gas sensor value"
-    ),
-    "D0310A": FieldDefinition(
-        name="fan_speed", type="integer", description="Fan speed setting"
-    ),
+    "D03106": FieldDefinition(name="gas_sensor", type="integer", description="Gas sensor value"),
+    "D0310A": FieldDefinition(name="fan_speed", type="integer", description="Fan speed setting"),
     "D0310C": FieldDefinition(
         name="target_humidity", type="integer", description="Target humidity (%)"
     ),
@@ -78,12 +67,8 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
     "D03110": FieldDefinition(
         name="humidity_sensor", type="integer", description="Humidity sensor value (%)"
     ),
-    "D03115": FieldDefinition(
-        name="auto_mode", type="boolean", description="Auto mode enabled"
-    ),
-    "D0311F": FieldDefinition(
-        name="sleep_mode", type="boolean", description="Sleep mode enabled"
-    ),
+    "D03115": FieldDefinition(name="auto_mode", type="boolean", description="Auto mode enabled"),
+    "D0311F": FieldDefinition(name="sleep_mode", type="boolean", description="Sleep mode enabled"),
     "D03120": FieldDefinition(
         name="display_brightness", type="integer", description="Display brightness"
     ),
@@ -114,9 +99,7 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
     "D03136": FieldDefinition(
         name="carbon_filter_life", type="integer", description="Carbon filter life remaining (%)"
     ),
-    "D03180": FieldDefinition(
-        name="timer_enabled", type="boolean", description="Timer enabled"
-    ),
+    "D03180": FieldDefinition(name="timer_enabled", type="boolean", description="Timer enabled"),
     "D03182": FieldDefinition(
         name="schedule_enabled", type="boolean", description="Schedule enabled"
     ),
@@ -124,9 +107,7 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
         name="timer_remaining", type="integer", description="Timer remaining (minutes)"
     ),
     # Advanced features
-    "D03211": FieldDefinition(
-        name="turbo_mode", type="boolean", description="Turbo mode enabled"
-    ),
+    "D03211": FieldDefinition(name="turbo_mode", type="boolean", description="Turbo mode enabled"),
     "D03221": FieldDefinition(
         name="allergen_mode", type="integer", description="Allergen mode setting"
     ),
@@ -170,8 +151,14 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
 
 DEVICE_FIELD_KEYS = frozenset(
     [
-        "D01S03", "D01S04", "D01S05", "D01S0D", "D01S12",
-        "DeviceId", "ProductId", "WifiVersion",
+        "D01S03",
+        "D01S04",
+        "D01S05",
+        "D01S0D",
+        "D01S12",
+        "DeviceId",
+        "ProductId",
+        "WifiVersion",
     ]
 )
 SENSOR_FIELD_KEYS = frozenset(
@@ -179,8 +166,21 @@ SENSOR_FIELD_KEYS = frozenset(
 )
 CONTROL_FIELD_KEYS = frozenset(
     [
-        "D03102", "D0310A", "D0310C", "D03115", "D0311F", "D03120", "D03122",
-        "D0312A", "D0312B", "D03180", "D03182", "D0313B", "D03211", "D03221", "D03240",
+        "D03102",
+        "D0310A",
+        "D0310C",
+        "D03115",
+        "D0311F",
+        "D03120",
+        "D03122",
+        "D0312A",
+        "D0312B",
+        "D03180",
+        "D03182",
+        "D0313B",
+        "D03211",
+        "D03221",
+        "D03240",
     ]
 )
 FILTER_FIELD_KEYS = frozenset(

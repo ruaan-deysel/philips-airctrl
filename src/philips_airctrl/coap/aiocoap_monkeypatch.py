@@ -20,7 +20,7 @@ def _deduplicate_message(self, message):  # type: ignore[no-untyped-def]  # prag
 MessageManager._deduplicate_message = _deduplicate_message  # type: ignore[assignment]
 
 
-def __del__(self):  # type: ignore[no-untyped-def]  # pragma: no cover
+def _iterator_del(self):  # type: ignore[no-untyped-def]  # pragma: no cover
     if self._future.done():
         try:
             self._future.result()
@@ -32,4 +32,4 @@ def __del__(self):  # type: ignore[no-untyped-def]  # pragma: no cover
             pass
 
 
-ClientObservation._Iterator.__del__ = __del__  # type: ignore[attr-defined]
+ClientObservation._Iterator.__del__ = _iterator_del  # type: ignore[attr-defined]

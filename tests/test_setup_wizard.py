@@ -1,7 +1,5 @@
 """Tests for the setup wizard module."""
 
-import json
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -239,9 +237,7 @@ class TestDeviceInfoStep:
 
         with (
             patch("philips_airctrl.setup_wizard.click") as mock_click,
-            patch(
-                "philips_airctrl.setup_wizard.DeviceInfoExtractor", return_value=mock_extractor
-            ),
+            patch("philips_airctrl.setup_wizard.DeviceInfoExtractor", return_value=mock_extractor),
         ):
             mock_bar = MagicMock()
             mock_click.progressbar.return_value.__enter__ = MagicMock(return_value=mock_bar)
@@ -264,9 +260,7 @@ class TestDeviceInfoStep:
 
         with (
             patch("philips_airctrl.setup_wizard.click") as mock_click,
-            patch(
-                "philips_airctrl.setup_wizard.DeviceInfoExtractor", return_value=mock_extractor
-            ),
+            patch("philips_airctrl.setup_wizard.DeviceInfoExtractor", return_value=mock_extractor),
         ):
             mock_bar = MagicMock()
             mock_click.progressbar.return_value.__enter__ = MagicMock(return_value=mock_bar)

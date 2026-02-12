@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import os
-from collections.abc import AsyncIterator
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from aiocoap import Context, Message, NON
+if TYPE_CHECKING:
+    from collections.abc import AsyncIterator
+
+from aiocoap import NON, Context, Message
 from aiocoap.numbers.codes import GET, POST
 
 from philips_airctrl.coap import aiocoap_monkeypatch as _  # noqa: F401
