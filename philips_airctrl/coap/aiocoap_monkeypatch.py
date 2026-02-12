@@ -1,13 +1,15 @@
+"""Monkey patches for aiocoap library to improve reliability."""
+
 import asyncio
 import functools
 
+from aiocoap.error import LibraryShutdown, NotObservable, ObservationCancelled
 from aiocoap.messagemanager import MessageManager
 from aiocoap.numbers.constants import EXCHANGE_LIFETIME
 from aiocoap.protocol import ClientObservation
-from aiocoap.error import ObservationCancelled, NotObservable, LibraryShutdown
 
 
-def _deduplicate_message(self, message):
+def _deduplicate_message(self, message):  # type: ignore[no-untyped-def]  # pragma: no cover
     key = (message.remote, message.mid)
     self.log.debug("MP: New unique message received")
     self.loop.call_later(EXCHANGE_LIFETIME, functools.partial(self._recent_messages.pop, key))
@@ -15,18 +17,14 @@ def _deduplicate_message(self, message):
     return False
 
 
-MessageManager._deduplicate_message = _deduplicate_message
+MessageManager._deduplicate_message = _deduplicate_message  # type: ignore[assignment]
 
 
-def __del__(self):
+def __del__(self):  # type: ignore[no-untyped-def]  # pragma: no cover
     if self._future.done():
         try:
-            # Fetch the result so any errors show up at least in the
-            # finalizer output
             self._future.result()
         except (ObservationCancelled, NotObservable):
-            # This is the case at the end of an observation cancelled
-            # by the server.
             pass
         except LibraryShutdown:
             pass
@@ -34,4 +32,4 @@ def __del__(self):
             pass
 
 
-ClientObservation._Iterator.__del__ = __del__
+ClientObservation._Iterator.__del__ = __del__  # type: ignore[attr-defined]

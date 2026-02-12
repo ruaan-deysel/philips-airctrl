@@ -1,19 +1,15 @@
-[build-system]
-requires = ["setuptools>=61.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "philips-airctrl"
-version = "0.3.0"
+version = "0.4.0"
 description = "Enhanced Philips air purifier library with Home Assistant integration, device discovery, and setup wizard"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
     {name = "betaboon"},
-    {name = "Ruaan Deysel", email = "ruaan@domalab.com"}
+    {name = "Ruaan Deysel", email = "ruaan@domalab.com"},
 ]
 maintainers = [
-    {name = "Ruaan Deysel", email = "ruaan@domalab.com"}
+    {name = "Ruaan Deysel", email = "ruaan@domalab.com"},
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -21,45 +17,42 @@ classifiers = [
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Home Automation",
     "Topic :: Internet :: WWW/HTTP",
     "Topic :: Software Development :: Libraries :: Python Modules",
 ]
-keywords = ["philips", "air purifier", "coap", "iot", "home automation", "home assistant", "device discovery", "setup wizard"]
-requires-python = ">=3.8"
+keywords = [
+    "philips",
+    "air purifier",
+    "coap",
+    "iot",
+    "home automation",
+    "home assistant",
+    "device discovery",
+    "setup wizard",
+]
+requires-python = ">=3.11"
 dependencies = [
     "pycryptodomex>=3.20.0",
-    "aiocoap>=0.4.7",     # Latest available version
-    "netifaces>=0.11.0",  # For network interface discovery
-    "tabulate>=0.9.0",    # For pretty table output
-    "pyyaml>=6.0",        # For YAML export
-    "click>=8.0.0",       # For interactive CLI
+    "aiocoap>=0.4.7",
+    "netifaces>=0.11.0",
+    "tabulate>=0.9.0",
+    "pyyaml>=6.0",
+    "click>=8.0.0",
+    "pydantic>=2.0.0",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "black>=23.0.0",
-    "flake8>=6.0.0",
+    "ruff>=0.8.0",
     "mypy>=1.0.0",
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
-    "pre-commit>=3.0.0",
-    "isort>=5.12.0",
-    "bandit[toml]>=1.7.0",
-    "safety>=2.0.0",
-    "build>=0.10.0",
-    "twine>=4.0.0",
-]
-test = [
-    "pytest>=7.0.0",
-    "pytest-asyncio>=0.21.0",
-    "pytest-cov>=4.0.0",
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "pytest-cov>=6.0.0",
+    "pre-commit>=4.0.0",
 ]
 
 [project.urls]
@@ -71,66 +64,42 @@ Changelog = "https://github.com/domalab/philips-airctrl/blob/main/CHANGELOG.md"
 [project.scripts]
 philips-airctrl = "philips_airctrl.__main__:main"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["philips_airctrl*"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools]
-py-modules = []
-
-[tool.black]
+[tool.ruff]
+target-version = "py311"
 line-length = 100
-target-version = ['py38', 'py39', 'py310', 'py311', 'py312']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | build
-  | dist
-)/
-'''
 
-[tool.flake8]
-max-line-length = 100
-max-complexity = 18
-select = ["B", "C", "E", "F", "W", "T4", "B9"]
-per-file-ignores = [
-    "__init__.py:F401,F403"
+[tool.ruff.lint]
+select = [
+    "E",     # pycodestyle errors
+    "W",     # pycodestyle warnings
+    "F",     # pyflakes
+    "I",     # isort
+    "N",     # pep8-naming
+    "UP",    # pyupgrade
+    "B",     # flake8-bugbear
+    "SIM",   # flake8-simplify
+    "TCH",   # flake8-type-checking
+    "RUF",   # ruff-specific rules
 ]
-ignore = [
-    "E111", "E121", "E122", "E123", "E124", "E125", "E126",
-    "E201", "E202", "E203", "E221", "E222", "E225", "E226", "E227", "E231", "E241", "E251", "E261", "E262", "E265", "E271", "E272",
-    "E302", "E303", "E306",
-    "E502",
-    "E701", "E702", "E703", "E704",
-    "W291", "W292", "W293",
-    "W391",
-    "W503"
-]
+
+[tool.ruff.lint.isort]
+known-first-party = ["philips_airctrl"]
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 disallow_incomplete_defs = true
 check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
 strict_equality = true
 
 [tool.pytest.ini_options]
-minversion = "7.0"
+minversion = "8.0"
 addopts = [
     "--strict-markers",
     "--strict-config",
@@ -151,19 +120,13 @@ source = ["philips_airctrl"]
 omit = [
     "*/tests/*",
     "*/test_*",
-    "setup.py",
 ]
 
 [tool.coverage.report]
+fail_under = 100
 exclude_lines = [
     "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
+    "if TYPE_CHECKING:",
     "if __name__ == .__main__.:",
-    "class .*\\bProtocol\\):",
-    "@(abc\\.)?abstractmethod",
+    "@overload",
 ]
