@@ -10,7 +10,7 @@ async def main():
     print(status)
     print(f"max_age = {max_age}")
     print("OBSERVING")
-    async for s in client.observe_status():
+    async for _s in client.observe_status():
         print("GOT STATE")
     await asyncio.sleep(10)
 

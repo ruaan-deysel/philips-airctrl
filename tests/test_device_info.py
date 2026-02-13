@@ -51,24 +51,21 @@ class TestAnalyzeCapabilities:
 
     def test_full_status(self):
         status = {
-            "D0312A": True,
-            "D0312B": True,
-            "D03103": 25,
-            "D03110": 50,
-            "D03105": 10,
-            "D03106": 5,
-            "D03120": 3,
-            "D03180": True,
-            "D03182": True,
-            "D01213": 1,
-            "D0311F": True,
-            "D03211": True,
-            "D03221": 1,
-            "D03240": True,
-            "D03130": 80,
-            "D03134": 90,
-            "D03135": 70,
-            "D03136": 60,
+            "D03128": 50,  # has_humidifier (humidity_target)
+            "D0312B": True,  # has_purifier + has_humidifier (humidifying)
+            "D03221": 15,  # has_pm25_sensor
+            "D03125": 56,  # has_humidity_sensor
+            "D03120": 3,  # has_allergen_sensor + has_allergen_mode
+            "D03122": 5,  # has_gas_sensor
+            "D03105": 80,  # has_display
+            "D03110": 2,  # has_timer
+            "D03182": True,  # has_schedule
+            "D03103": 1,  # has_child_lock
+            "D0311F": True,  # has_sleep_mode
+            "D03211": True,  # has_turbo_mode
+            "D03240": True,  # has_bacteria_virus_mode
+            "D0520D": 456,  # nanoprotect_prefilter
+            "D0540E": 3489,  # nanoprotect_filter
         }
         caps = analyze_capabilities(status)
         assert caps.has_humidifier is True
@@ -85,18 +82,57 @@ class TestAnalyzeCapabilities:
         assert caps.has_turbo_mode is True
         assert caps.has_allergen_mode is True
         assert caps.has_bacteria_virus_mode is True
-        assert "main_filter" in caps.filter_types
+        assert "nanoprotect_prefilter" in caps.filter_types
+        assert "nanoprotect_filter" in caps.filter_types
+
+    def test_pm25_via_gen1(self):
+        caps = analyze_capabilities({"pm25": 15})
+        assert caps.has_pm25_sensor is True
+
+    def test_display_via_d0312d(self):
+        caps = analyze_capabilities({"D0312D": 50})
+        assert caps.has_display is True
+
+    def test_gen1_capabilities(self):
+        status = {
+            "func": "PH",
+            "pm25": 15,
+            "rh": 56,
+            "iaql": 3,
+            "tvoc": 5,
+            "aqil": 80,
+            "dt": 2,
+            "cl": True,
+            "err": 0,
+            "fltsts0": 200,
+            "fltsts1": 300,
+            "fltsts2": 400,
+            "wicksts": 500,
+        }
+        caps = analyze_capabilities(status)
+        assert caps.has_humidifier is True
+        assert caps.has_purifier is True
+        assert caps.has_pm25_sensor is True
+        assert caps.has_humidity_sensor is True
+        assert caps.has_allergen_sensor is True
+        assert caps.has_gas_sensor is True
+        assert caps.has_display is True
+        assert caps.has_timer is True
+        assert caps.has_child_lock is True
+        assert caps.has_allergen_mode is True
+        assert caps.has_bacteria_virus_mode is True
         assert "pre_filter" in caps.filter_types
         assert "hepa_filter" in caps.filter_types
         assert "carbon_filter" in caps.filter_types
+        assert "wick_filter" in caps.filter_types
 
-    def test_pm25_via_d03224(self):
-        caps = analyze_capabilities({"D03224": 15})
-        assert caps.has_pm25_sensor is True
+    def test_schedule_via_d03r81(self):
+        caps = analyze_capabilities({"D03R81": "AAECAwQ="})
+        assert caps.has_schedule is True
 
-    def test_display_via_d03122(self):
-        caps = analyze_capabilities({"D03122": True})
-        assert caps.has_display is True
+    def test_child_lock_via_d01213(self):
+        caps = analyze_capabilities({"D01213": 1})
+        assert caps.has_child_lock is True
 
 
 class TestGenerateHAConfig:
@@ -119,30 +155,32 @@ class TestGenerateHAConfig:
         assert "power" in config.supported_features
 
     def test_with_humidifier(self):
-        status = {"D0312A": True}
+        status = {"D03128": 50}
         config = generate_ha_config("192.168.1.100", status)
         assert "humidity_target" in config.supported_features
 
     def test_with_display(self):
-        status = {"D03120": 3}
+        status = {"D03105": 80}
         config = generate_ha_config("192.168.1.100", status)
         assert "display_brightness" in config.supported_features
 
     def test_with_pm25_sensor(self):
-        status = {"D03224": 15}
+        status = {"D03221": 15}
         config = generate_ha_config("192.168.1.100", status)
         assert len(config.sensors) == 1
         assert config.sensors[0].name == "PM2.5"
+        assert config.sensors[0].key == "D03221"
 
     def test_with_humidity_sensor(self):
-        status = {"D03110": 50}
+        status = {"D03125": 56}
         config = generate_ha_config("192.168.1.100", status)
         assert any(s.name == "Humidity" for s in config.sensors)
+        assert any(s.key == "D03125" for s in config.sensors)
 
-    def test_with_main_filter(self):
-        status = {"D03130": 80}
+    def test_with_nanoprotect_filter(self):
+        status = {"D0540E": 3489}
         config = generate_ha_config("192.168.1.100", status)
-        assert any(s.name == "Filter Life" for s in config.sensors)
+        assert any(s.name == "NanoProtect Filter" for s in config.sensors)
 
     def test_defaults_without_info(self):
         config = generate_ha_config("192.168.1.100", {})
@@ -155,11 +193,27 @@ class TestGenerateHAConfig:
         assert config.device_info.sw_version == "Unknown"
         assert config.device_info.hw_version == "Unknown"
 
-    def test_no_filter_sensor_for_non_main(self):
-        status = {"D03134": 90}  # pre_filter only
+    def test_no_filter_sensor_for_prefilter_only(self):
+        status = {"D0520D": 456}  # nanoprotect_prefilter only
         config = generate_ha_config("192.168.1.100", status)
-        # pre_filter is in filter_types but shouldn't create sensor
-        assert not any(s.name == "Filter Life" for s in config.sensors)
+        # Only nanoprotect_filter creates a sensor, not prefilter
+        assert not any(s.name == "NanoProtect Filter" for s in config.sensors)
+
+    def test_gen1_config(self):
+        status = {
+            "modelid": "AC1234",
+            "name": "Bedroom",
+            "swversion": "1.0.0",
+            "pm25": 15,
+            "rh": 50,
+            "func": "P",
+        }
+        config = generate_ha_config("192.168.1.100", status)
+        assert config.model == "AC1234"
+        assert config.name == "Bedroom"
+        assert config.device_info.sw_version == "1.0.0"
+        assert any(s.key == "pm25" for s in config.sensors)
+        assert any(s.key == "rh" for s in config.sensors)
 
 
 class TestDeviceInfoExtractor:
@@ -180,8 +234,9 @@ class TestDeviceInfoExtractor:
                 "D01S03": "Living Room",
                 "D01S05": "AC4220",
                 "D03102": True,
-                "D03103": 25,
-                "D03130": 80,
+                "D03103": 1,
+                "D03221": 15,
+                "D0540E": 3489,
                 "UnknownField": "test",
             },
             120,
@@ -197,8 +252,9 @@ class TestDeviceInfoExtractor:
         assert "device_name" in report.device
         assert "model_number" in report.device
         assert "power" in report.controls
-        assert "pm25_sensor" in report.sensors
-        assert "filter_life" in report.filters
+        assert "child_lock" in report.controls
+        assert "pm25" in report.sensors
+        assert "nanoprotect_filter_remaining" in report.filters
         assert "UnknownField" in report.system
         assert report.system["UnknownField"].description == "Unknown field"
         mock_client.shutdown.assert_called_once()
@@ -259,4 +315,4 @@ class TestDeviceFieldsDefinitions:
             assert field.description
 
     def test_field_count(self):
-        assert len(DEVICE_FIELDS) > 40
+        assert len(DEVICE_FIELDS) > 90
