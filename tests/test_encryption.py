@@ -21,6 +21,11 @@ class TestEncryptionContext:
         ctx._increment_client_key()
         assert ctx._client_key == "00000002"
 
+    def test_increment_client_key_without_key_set(self):
+        ctx = EncryptionContext()
+        with pytest.raises(RuntimeError, match="Client key not initialised"):
+            ctx._increment_client_key()
+
     def test_increment_client_key_overflow(self):
         ctx = EncryptionContext()
         ctx.set_client_key("FFFFFFFF")

@@ -67,8 +67,6 @@ class DeviceDiscovery:
                 sock.close()
                 return None
 
-            device_info = DeviceInfo(ip=ip)
-
             try:
                 client = await asyncio.wait_for(
                     Client.create(host=ip, port=5683),

@@ -3,7 +3,7 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Code style: ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![Tests](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)]()
+![Tests](https://img.shields.io/badge/coverage-100%25-brightgreen.svg)
 
 Async Python library and CLI for controlling Philips air purifiers over encrypted CoAP. Includes network discovery, device data extraction, and an interactive setup wizard for collecting device information to help expand Home Assistant integration support.
 
@@ -67,7 +67,7 @@ philips-airctrl discover -t 10.0
 
 Example output:
 
-```
+```text
 Discovering Philips air purifiers on the network...
 
 Scanning networks: 192.168.1.0/24, 192.168.20.0/24
@@ -180,7 +180,7 @@ print(extractor.export_yaml(report))
 
 ## CLI Reference
 
-```
+```text
 philips-airctrl [-D] <command> [options]
 
 Global options:
@@ -229,7 +229,7 @@ To contribute:
 
 ## Project Structure
 
-```
+```text
 philips-airctrl/
   src/philips_airctrl/       # Package source (src layout)
     _version.py              # Single source of truth for version

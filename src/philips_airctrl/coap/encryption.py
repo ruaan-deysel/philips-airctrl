@@ -20,6 +20,8 @@ class EncryptionContext:
         self._client_key = client_key
 
     def _increment_client_key(self) -> None:
+        if self._client_key is None:
+            raise RuntimeError("Client key not initialised; call set_client_key() first")
         client_key_int = (int(self._client_key, 16) + 1) & 0xFFFFFFFF
         client_key_next = client_key_int.to_bytes(4, byteorder="big").hex().upper()
         self._client_key = client_key_next

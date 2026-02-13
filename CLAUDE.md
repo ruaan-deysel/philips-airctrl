@@ -34,7 +34,7 @@ uv run pre-commit run --all-files
 
 ## Architecture
 
-```
+```text
 src/philips_airctrl/
 ├── __main__.py          # CLI entry point → calls cli.main()
 ├── cli.py               # Argument parsing and command dispatch (argparse)
