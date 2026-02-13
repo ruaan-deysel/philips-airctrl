@@ -97,24 +97,26 @@ class TestDeviceDiscovery:
         with patch("philips_airctrl.discovery.socket.socket") as mock_sock_class:
             mock_sock = MagicMock()
             mock_sock.connect_ex.return_value = 1  # Port not reachable
+            mock_sock.__enter__ = MagicMock(return_value=mock_sock)
+            mock_sock.__exit__ = MagicMock(return_value=False)
             mock_sock_class.return_value = mock_sock
 
             discovery = DeviceDiscovery()
             result = await discovery.scan_ip("192.168.1.50")
             assert result is None
-            mock_sock.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_scan_ip_socket_exception(self):
         with patch("philips_airctrl.discovery.socket.socket") as mock_sock_class:
             mock_sock = MagicMock()
             mock_sock.connect_ex.side_effect = OSError("fail")
+            mock_sock.__enter__ = MagicMock(return_value=mock_sock)
+            mock_sock.__exit__ = MagicMock(return_value=False)
             mock_sock_class.return_value = mock_sock
 
             discovery = DeviceDiscovery()
             result = await discovery.scan_ip("192.168.1.50")
             assert result is None
-            mock_sock.close.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_scan_ip_success(self):
@@ -124,6 +126,8 @@ class TestDeviceDiscovery:
         ):
             mock_sock = MagicMock()
             mock_sock.connect_ex.return_value = 0
+            mock_sock.__enter__ = MagicMock(return_value=mock_sock)
+            mock_sock.__exit__ = MagicMock(return_value=False)
             mock_sock_class.return_value = mock_sock
 
             mock_client = AsyncMock()
@@ -163,6 +167,8 @@ class TestDeviceDiscovery:
         ):
             mock_sock = MagicMock()
             mock_sock.connect_ex.return_value = 0
+            mock_sock.__enter__ = MagicMock(return_value=mock_sock)
+            mock_sock.__exit__ = MagicMock(return_value=False)
             mock_sock_class.return_value = mock_sock
 
             discovery = DeviceDiscovery(timeout=0.1)
@@ -180,6 +186,8 @@ class TestDeviceDiscovery:
         ):
             mock_sock = MagicMock()
             mock_sock.connect_ex.return_value = 0
+            mock_sock.__enter__ = MagicMock(return_value=mock_sock)
+            mock_sock.__exit__ = MagicMock(return_value=False)
             mock_sock_class.return_value = mock_sock
 
             discovery = DeviceDiscovery(timeout=0.1)

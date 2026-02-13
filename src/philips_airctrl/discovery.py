@@ -55,16 +55,13 @@ class DeviceDiscovery:
     async def scan_ip(self, ip: str) -> DeviceInfo | None:
         """Scan a single IP address for a Philips air purifier."""
         try:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            sock.settimeout(1.0)
-            try:
-                result = sock.connect_ex((ip, 5683))
-                sock.close()
+            def _udp_probe(target: str) -> bool:
+                with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+                    sock.settimeout(1.0)
+                    return sock.connect_ex((target, 5683)) == 0
 
-                if result != 0:
-                    return None
-            except Exception:
-                sock.close()
+            reachable = await asyncio.to_thread(_udp_probe, ip)
+            if not reachable:
                 return None
 
             try:

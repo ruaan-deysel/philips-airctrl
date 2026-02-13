@@ -157,25 +157,39 @@ asyncio.run(main())
 ### Discovery API
 
 ```python
+import asyncio
+
 from philips_airctrl.discovery import DeviceDiscovery
 
-discovery = DeviceDiscovery(timeout=5.0)
-devices = await discovery.discover_devices()
 
-for device in devices:
-    print(f"{device.name} ({device.model}) at {device.ip}")
+async def main() -> None:
+    discovery = DeviceDiscovery(timeout=5.0)
+    devices = await discovery.discover_devices()
+
+    for device in devices:
+        print(f"{device.name} ({device.model}) at {device.ip}")
+
+
+asyncio.run(main())
 ```
 
 ### Device Info API
 
 ```python
+import asyncio
+
 from philips_airctrl.device_info import DeviceInfoExtractor
 
-extractor = DeviceInfoExtractor("192.168.1.100")
-report = await extractor.get_device_info()
 
-print(extractor.export_json(report, pretty=True))
-print(extractor.export_yaml(report))
+async def main() -> None:
+    extractor = DeviceInfoExtractor("192.168.1.100")
+    report = await extractor.get_device_info()
+
+    print(extractor.export_json(report, pretty=True))
+    print(extractor.export_yaml(report))
+
+
+asyncio.run(main())
 ```
 
 ## CLI Reference
@@ -224,7 +238,7 @@ The device-info and setup commands produce technical reports that developers use
 To contribute:
 
 1. Run `philips-airctrl setup` and follow the prompts
-2. Open an issue at the relevant integration repo (e.g. [ha-philips-airpurifier](https://github.com/domalab/ha-philips-airpurifier))
+2. Open an issue in the relevant integration repo (e.g. [ha-philips-airpurifier](https://github.com/domalab/ha-philips-airpurifier))
 3. Attach the generated JSON file and include your device model number
 
 ## Project Structure

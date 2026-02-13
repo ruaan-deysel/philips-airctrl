@@ -2,7 +2,11 @@
 
 import pytest
 
-from philips_airctrl.coap.encryption import DigestMismatchError, EncryptionContext
+from philips_airctrl.coap.encryption import (
+    ClientKeyNotInitialisedError,
+    DigestMismatchError,
+    EncryptionContext,
+)
 
 
 class TestEncryptionContext:
@@ -23,7 +27,7 @@ class TestEncryptionContext:
 
     def test_increment_client_key_without_key_set(self):
         ctx = EncryptionContext()
-        with pytest.raises(RuntimeError, match="Client key not initialised"):
+        with pytest.raises(ClientKeyNotInitialisedError, match="Client key not initialised"):
             ctx._increment_client_key()
 
     def test_increment_client_key_overflow(self):
