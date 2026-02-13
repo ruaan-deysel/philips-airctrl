@@ -4,6 +4,7 @@ import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from aiocoap.error import NetworkError
 
 from philips_airctrl.coap.client import Client
 
@@ -33,6 +34,23 @@ class TestClient:
             assert client.host == "192.168.1.100"
             assert client.port == 5684
             mock_init.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_async_context_manager(self):
+        with patch.object(Client, "_init", new_callable=AsyncMock) as mock_init:
+            async with Client("192.168.1.100") as client:
+                assert isinstance(client, Client)
+                mock_init.assert_called_once()
+                # Set up a mock context so shutdown works
+                client._client_context = AsyncMock()
+
+            client._client_context.shutdown.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_async_context_manager_no_context(self):
+        with patch.object(Client, "_init", new_callable=AsyncMock):
+            async with Client("192.168.1.100"):
+                pass  # shutdown with no _client_context should not raise
 
     @pytest.mark.asyncio
     async def test_shutdown(self):
@@ -143,6 +161,25 @@ class TestClient:
         assert max_age == 60
 
     @pytest.mark.asyncio
+    async def test_get_status_network_error(self):
+        client = Client("192.168.1.100")
+
+        mock_context = MagicMock()
+        mock_requester = MagicMock()
+
+        async def mock_response_coro():
+            raise NetworkError("connection failed")
+
+        mock_requester.response = mock_response_coro()
+        mock_context.request.return_value = mock_requester
+
+        client._client_context = mock_context
+        client._encryption_context = MagicMock()
+
+        with pytest.raises(NetworkError):
+            await client.get_status()
+
+    @pytest.mark.asyncio
     async def test_set_control_value(self):
         client = Client("192.168.1.100")
 
@@ -204,39 +241,25 @@ class TestClient:
         assert result is True
 
     @pytest.mark.asyncio
-    async def test_set_control_values_failure_with_retry(self):
+    async def test_set_control_values_failure_no_retry(self):
         client = Client("192.168.1.100")
 
         mock_context = MagicMock()
         mock_encryption = MagicMock()
         mock_encryption.encrypt.return_value = "encrypted"
 
-        # All responses return failure
-        call_count = 0
+        mock_response = MagicMock()
+        mock_response.payload = b'{"status": "failed"}'
+        mock_requester = MagicMock()
 
-        def make_requester():
-            nonlocal call_count
-            call_count += 1
-            mock_response = MagicMock()
-            mock_response.payload = b'{"status": "failed"}'
-            mock_requester = MagicMock()
+        async def coro():
+            return mock_response
 
-            async def coro():
-                return mock_response
-
-            mock_requester.response = coro()
-            return mock_requester
-
-        mock_context.request.side_effect = lambda _: make_requester()
+        mock_requester.response = coro()
+        mock_context.request.return_value = mock_requester
 
         client._client_context = mock_context
         client._encryption_context = mock_encryption
-
-        # Mock _sync
-        async def mock_sync():
-            pass
-
-        client._sync = mock_sync
 
         result = await client.set_control_values({"power": True}, retry_count=0, resync=False)
         assert result is False
@@ -279,9 +302,55 @@ class TestClient:
 
         client._sync = mock_sync
 
-        result = await client.set_control_values({"power": True}, retry_count=1, resync=True)
+        with patch("philips_airctrl.coap.client.asyncio.sleep", new_callable=AsyncMock) as mock_sl:
+            result = await client.set_control_values({"power": True}, retry_count=1, resync=True)
+
         assert result is True
         assert sync_called is True
+        mock_sl.assert_called_once_with(0.5)
+
+    @pytest.mark.asyncio
+    async def test_set_control_values_iterative_retry_exhaustion(self):
+        """Test that iterative retry exhausts all attempts with sleep between them."""
+        client = Client("192.168.1.100")
+
+        mock_context = MagicMock()
+        mock_encryption = MagicMock()
+        mock_encryption.encrypt.return_value = "encrypted"
+
+        request_count = 0
+
+        def make_requester():
+            nonlocal request_count
+            request_count += 1
+            mock_response = MagicMock()
+            mock_response.payload = b'{"status": "failed"}'
+            mock_requester = MagicMock()
+
+            async def coro():
+                return mock_response
+
+            mock_requester.response = coro()
+            return mock_requester
+
+        mock_context.request.side_effect = lambda _: make_requester()
+
+        client._client_context = mock_context
+        client._encryption_context = mock_encryption
+
+        async def mock_sync():
+            pass
+
+        client._sync = mock_sync
+
+        with patch("philips_airctrl.coap.client.asyncio.sleep", new_callable=AsyncMock) as mock_sl:
+            result = await client.set_control_values({"power": True}, retry_count=3, resync=False)
+
+        assert result is False
+        # Initial attempt + 3 retries = 4 total requests
+        assert request_count == 4
+        # Sleep called between retries (3 times, not after final attempt)
+        assert mock_sl.call_count == 3
 
     @pytest.mark.asyncio
     async def test_observe_status(self):

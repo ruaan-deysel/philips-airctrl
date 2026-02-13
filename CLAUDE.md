@@ -40,8 +40,7 @@ src/philips_airctrl/
 ├── cli.py               # Argument parsing and command dispatch (argparse)
 ├── coap/
 │   ├── client.py        # Async CoAP client (Client class) — device communication
-│   ├── encryption.py    # AES-CBC encryption/decryption for CoAP payloads
-│   └── aiocoap_monkeypatch.py  # Reliability patches for aiocoap library
+│   └── encryption.py    # AES-CBC encryption/decryption for CoAP payloads
 ├── discovery.py         # Network scanning for Philips devices (DeviceDiscovery)
 ├── device_info.py       # Device capability analysis and reporting (DeviceInfoExtractor)
 ├── models.py            # All Pydantic v2 data models (DeviceInfo, DeviceReport, HAConfig, etc.)

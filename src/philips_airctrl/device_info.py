@@ -87,6 +87,9 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
     "D0312C": FieldDefinition(
         name="air_quality_index", type="integer", description="Air quality index"
     ),
+    "D03112": FieldDefinition(
+        name="function_mode", type="integer", description="Function mode setting"
+    ),
     "D03130": FieldDefinition(
         name="filter_life", type="integer", description="Filter life remaining (%)"
     ),
@@ -98,6 +101,11 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
     ),
     "D03136": FieldDefinition(
         name="carbon_filter_life", type="integer", description="Carbon filter life remaining (%)"
+    ),
+    "D03137": FieldDefinition(
+        name="wick_filter_life",
+        type="integer",
+        description="Wick/humidifier filter life remaining (%)",
     ),
     "D03180": FieldDefinition(name="timer_enabled", type="boolean", description="Timer enabled"),
     "D03182": FieldDefinition(
@@ -116,6 +124,9 @@ DEVICE_FIELDS: dict[str, FieldDefinition] = {
     ),
     "D03240": FieldDefinition(
         name="bacteria_virus_mode", type="boolean", description="Bacteria/virus mode"
+    ),
+    "D03R81": FieldDefinition(
+        name="schedule_data", type="string", description="Schedule/mode data (base64)"
     ),
     # System information
     "Runtime": FieldDefinition(
@@ -169,6 +180,7 @@ CONTROL_FIELD_KEYS = frozenset(
         "D03102",
         "D0310A",
         "D0310C",
+        "D03112",
         "D03115",
         "D0311F",
         "D03120",
@@ -184,7 +196,18 @@ CONTROL_FIELD_KEYS = frozenset(
     ]
 )
 FILTER_FIELD_KEYS = frozenset(
-    ["D03130", "D03134", "D03135", "D03136", "D05102", "D05207", "D05408", "D0520D", "D0540E"]
+    [
+        "D03130",
+        "D03134",
+        "D03135",
+        "D03136",
+        "D03137",
+        "D05102",
+        "D05207",
+        "D05408",
+        "D0520D",
+        "D0540E",
+    ]
 )
 
 

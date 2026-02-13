@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import os
@@ -10,13 +11,15 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
 
-from aiocoap import NON, Context, Message
+from aiocoap import Context, Message, Unreliable
+from aiocoap.error import NetworkError
 from aiocoap.numbers.codes import GET, POST
 
-from philips_airctrl.coap import aiocoap_monkeypatch as _  # noqa: F401
 from philips_airctrl.coap.encryption import EncryptionContext
 
 logger = logging.getLogger(__name__)
+
+RETRY_DELAY = 0.5
 
 
 class Client:
@@ -41,6 +44,18 @@ class Client:
         await obj._init()
         return obj
 
+    async def __aenter__(self) -> Client:
+        await self._init()
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: Any,
+    ) -> None:
+        await self.shutdown()
+
     async def shutdown(self) -> None:
         if self._client_context:
             await self._client_context.shutdown()
@@ -50,7 +65,7 @@ class Client:
         sync_request = os.urandom(4).hex().upper()
         request = Message(
             code=POST,
-            mtype=NON,
+            transport_tuning=Unreliable,
             uri=f"coap://{self.host}:{self.port}{self.SYNC_PATH}",
             payload=sync_request.encode(),
         )
@@ -63,11 +78,15 @@ class Client:
         logger.debug("retrieving status")
         request = Message(
             code=GET,
-            mtype=NON,
+            transport_tuning=Unreliable,
             uri=f"coap://{self.host}:{self.port}{self.STATUS_PATH}",
         )
         request.opt.observe = 0
-        response = await self._client_context.request(request).response
+        try:
+            response = await self._client_context.request(request).response
+        except NetworkError:
+            logger.error("network error while retrieving status")
+            raise
         payload_encrypted = response.payload.decode()
         payload = self._encryption_context.decrypt(payload_encrypted)
         logger.debug("status: %s", payload)
@@ -91,7 +110,7 @@ class Client:
         logger.debug("observing status")
         request = Message(
             code=GET,
-            mtype=NON,
+            transport_tuning=Unreliable,
             uri=f"coap://{self.host}:{self.port}{self.STATUS_PATH}",
         )
         request.opt.observe = 0
@@ -124,22 +143,25 @@ class Client:
         payload = json.dumps(state_desired)
         logger.debug("REQUEST: %s", payload)
         payload_encrypted = self._encryption_context.encrypt(payload)
-        request = Message(
-            code=POST,
-            mtype=NON,
-            uri=f"coap://{self.host}:{self.port}{self.CONTROL_PATH}",
-            payload=payload_encrypted.encode(),
-        )
-        response = await self._client_context.request(request).response
-        logger.debug("RESPONSE: %s", response.payload)
-        result = json.loads(response.payload)
-        if result.get("status") == "success":
-            return True
-        if resync:
-            logger.debug("set_control_value failed. resyncing...")
-            await self._sync()
-        if retry_count > 0:
-            logger.debug("set_control_value failed. retrying...")
-            return await self.set_control_values(data, retry_count - 1, resync)
+
+        for attempt in range(retry_count + 1):
+            request = Message(
+                code=POST,
+                transport_tuning=Unreliable,
+                uri=f"coap://{self.host}:{self.port}{self.CONTROL_PATH}",
+                payload=payload_encrypted.encode(),
+            )
+            response = await self._client_context.request(request).response
+            logger.debug("RESPONSE: %s", response.payload)
+            result = json.loads(response.payload)
+            if result.get("status") == "success":
+                return True
+            if resync:
+                logger.debug("set_control_value failed. resyncing...")
+                await self._sync()
+            if attempt < retry_count:
+                logger.debug("set_control_value failed. retrying...")
+                await asyncio.sleep(RETRY_DELAY)
+
         logger.error("set_control_value failed: %s", data)
         return False

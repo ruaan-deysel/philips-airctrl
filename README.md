@@ -241,7 +241,6 @@ philips-airctrl/
     coap/                    # CoAP protocol layer
       client.py              # Async CoAP client
       encryption.py          # AES-CBC encryption
-      aiocoap_monkeypatch.py # aiocoap reliability patches
   tests/                     # Test suite (100% coverage)
   pyproject.toml             # Project metadata and tool config
 ```
