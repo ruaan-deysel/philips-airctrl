@@ -1,5 +1,10 @@
+"""Command-line interface for philips-airctrl."""
+
+from __future__ import annotations
+
 import argparse
 import asyncio
+import contextlib
 import json
 import logging
 import sys
@@ -15,7 +20,7 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__package__)
 
 
-def parse_args(args=None) -> argparse.Namespace:
+def parse_args(args: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(
         dest="command",
@@ -178,7 +183,7 @@ def parse_args(args=None) -> argparse.Namespace:
     )
 
     # Setup wizard command
-    parser_setup = subparsers.add_parser(
+    subparsers.add_parser(
         "setup",
         help="Interactive setup wizard for Home Assistant integration",
     )
@@ -186,9 +191,9 @@ def parse_args(args=None) -> argparse.Namespace:
     return parser.parse_args(args)
 
 
-async def handle_discover_command(args):
+async def handle_discover_command(args: argparse.Namespace) -> None:
     """Handle the discover command."""
-    print("🔍 Discovering Philips air purifiers on the network...")
+    print("Discovering Philips air purifiers on the network...")
     print()
 
     discovery = DeviceDiscovery(timeout=args.timeout)
@@ -204,59 +209,60 @@ async def handle_discover_command(args):
     print()
 
     if not devices:
-        print("❌ No devices found.")
+        print("No devices found.")
         print()
         print("Troubleshooting tips:")
-        print("• Ensure your air purifier is connected to the same network")
-        print("• Check that the device is powered on")
-        print("• Verify your firewall allows UDP traffic on port 5683")
-        print("• Try specifying a specific network with -n option")
+        print("  Ensure your air purifier is connected to the same network")
+        print("  Check that the device is powered on")
+        print("  Verify your firewall allows UDP traffic on port 5683")
+        print("  Try specifying a specific network with -n option")
         return
 
-    print(f"✅ Found {len(devices)} device(s):")
+    print(f"Found {len(devices)} device(s):")
     print()
 
-    # Display devices in a table
     headers = ["IP Address", "Model", "Name", "Firmware", "WiFi Signal"]
     rows = []
 
     for device in devices:
         signal = f"{device.status.get('rssi', 'N/A')} dBm" if device.status else "N/A"
-        rows.append([
-            device.ip,
-            device.model or "Unknown",
-            device.name or "Unknown",
-            device.firmware_version or "Unknown",
-            signal
-        ])
+        rows.append(
+            [
+                device.ip,
+                device.model or "Unknown",
+                device.name or "Unknown",
+                device.firmware_version or "Unknown",
+                signal,
+            ]
+        )
 
     print(tabulate(rows, headers=headers, tablefmt="grid"))
     print()
-    print("💡 Use 'philips-airctrl device-info -H <IP>' to extract technical device data")
-    print("💡 Use 'philips-airctrl setup' to collect device info for developers")
+    print("Use 'philips-airctrl device-info -H <IP>' to extract technical device data")
+    print("Use 'philips-airctrl setup' to collect device info for developers")
 
 
-async def handle_device_info_command(args, client):
+async def handle_device_info_command(args: argparse.Namespace) -> None:
     """Handle the device-info command."""
-    print(f"📊 Gathering device information from {args.host}...")
+    print(f"Gathering device information from {args.host}...")
 
     extractor = DeviceInfoExtractor(args.host, args.port)
     device_info = await extractor.get_device_info()
 
     if args.format == "json":
         output = extractor.export_json(device_info, pretty=True)
-    else:  # yaml
+    else:
         output = extractor.export_yaml(device_info)
 
     if args.output:
-        with open(args.output, 'w') as f:
+        with open(args.output, "w") as f:
             f.write(output)
-        print(f"✅ Device information saved to: {args.output}")
+        print(f"Device information saved to: {args.output}")
     else:
         print(output)
 
 
-async def handle_setup_command(args):
+async def handle_setup_command() -> None:
     """Handle the setup command."""
     wizard = SetupWizard()
     await wizard.run()
@@ -269,16 +275,14 @@ async def async_main() -> None:
         logging.getLogger("coap").setLevel(logging.DEBUG)
         logging.getLogger("philips_airpurifier").setLevel(logging.DEBUG)
 
-    # Handle commands that don't require a specific host
     if args.command == "discover":
         await handle_discover_command(args)
         return
-    elif args.command == "setup":
-        await handle_setup_command(args)
+    if args.command == "setup":
+        await handle_setup_command()
         return
 
-    # Commands that require a host
-    if not hasattr(args, 'host') or not args.host:
+    if not hasattr(args, "host") or not args.host:
         print("Error: Host is required for this command")
         return
 
@@ -300,26 +304,27 @@ async def async_main() -> None:
                     print(status)
                 sys.stdout.flush()
         elif args.command == "set":
-            data = {}
+            data: dict[str, str | int | bool] = {}
             failed = False
             for e in args.values:
                 k, v = e.split("=")
                 if v == "true":
-                    v = True
+                    data[k] = True
                 elif v == "false":
-                    v = False
+                    data[k] = False
                 elif args.value_as_int:
                     try:
-                        v = int(v)
+                        data[k] = int(v)
                     except ValueError:
-                        print("Cannot encode value '%s' as int" % v)
+                        print(f"Cannot encode value '{v}' as int")
                         failed = True
                         break
-                data[k] = v
+                else:
+                    data[k] = v
             if not failed and data:
                 await client.set_control_values(data=data)
         elif args.command == "device-info":
-            await handle_device_info_command(args, client)
+            await handle_device_info_command(args)
     except (KeyboardInterrupt, asyncio.CancelledError):
         pass
     finally:
@@ -327,12 +332,6 @@ async def async_main() -> None:
             await client.shutdown()
 
 
-def main():
-    try:
+def main() -> None:
+    with contextlib.suppress(KeyboardInterrupt):
         asyncio.run(async_main())
-    except KeyboardInterrupt:
-        pass
-
-
-if __name__ == "__main__":
-    main()
