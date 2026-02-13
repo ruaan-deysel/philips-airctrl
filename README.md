@@ -16,7 +16,6 @@ Async Python library and CLI for controlling Philips air purifiers over encrypte
 - **Async/Await** -- Built on `aiocoap` with full async support
 - **Encrypted CoAP** -- AES-CBC encrypted communication with the device
 - **Real-time Monitoring** -- Observe device status changes as they happen
-- **100% Test Coverage** -- Comprehensive test suite with Pydantic v2 models
 
 ## Supported Devices
 
@@ -70,14 +69,14 @@ Example output:
 ```text
 Discovering Philips air purifiers on the network...
 
-Scanning networks: 192.168.1.0/24, 192.168.20.0/24
+Scanning networks: 192.168.1.0/24
 
 Found 1 device(s):
 
 +----------------+-----------+---------+----------+-------------+
 | IP Address     | Model     | Name    | Firmware | WiFi Signal |
 +================+===========+=========+==========+=============+
-| 192.168.20.151 | AC4220/12 | Bedroom | 0.2.1    | -52 dBm     |
+| 192.168.1.100 | AC4220/12 | Bedroom | 0.2.1    | -52 dBm     |
 +----------------+-----------+---------+----------+-------------+
 ```
 
