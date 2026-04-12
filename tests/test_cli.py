@@ -233,6 +233,31 @@ class TestAsyncMain:
             mock_client.set_control_values.assert_not_called()
 
     @pytest.mark.asyncio
+    async def test_set_value_containing_equals_sign(self):
+        """Values that themselves contain '=' must be preserved intact (OWASP A03)."""
+        mock_client = AsyncMock()
+
+        with (
+            patch("philips_airctrl.cli.parse_args") as mock_parse,
+            patch("philips_airctrl.cli.CoAPClient.create", return_value=mock_client),
+        ):
+            mock_args = MagicMock()
+            mock_args.host = "192.168.1.100"
+            mock_args.port = 5683
+            mock_args.debug = False
+            mock_args.command = "set"
+            # The value portion contains an extra '=' (e.g. a base64-encoded token)
+            mock_args.values = ["token=abc=def=="]
+            mock_args.value_as_int = False
+            mock_parse.return_value = mock_args
+
+            await async_main()
+
+            mock_client.set_control_values.assert_called_once_with(
+                data={"token": "abc=def=="}
+            )
+
+    @pytest.mark.asyncio
     async def test_keyboard_interrupt(self):
         mock_client = AsyncMock()
         mock_client.get_status.side_effect = KeyboardInterrupt()

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -157,7 +158,10 @@ class SetupWizard:
         output_dir.mkdir(exist_ok=True)
 
         device = self.selected_device
-        device_name = device.name.replace(" ", "_").lower()
+        # Sanitize the device name: keep only word characters and hyphens so that
+        # a maliciously-crafted device name (e.g. "../../etc/passwd") cannot escape
+        # the intended output directory (OWASP A01 - path-traversal prevention).
+        device_name = re.sub(r"[^\w\-]", "_", device.name).lower() or "device"
 
         json_file = output_dir / f"{device_name}_device_info.json"
         with open(json_file, "w") as f:

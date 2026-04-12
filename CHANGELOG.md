@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: This is an enhanced fork of the original aioairctrl package with significant additional features for Home Assistant integration. Version numbers start from 0.3.0 to distinguish from the original package.
 
+## [Unreleased]
+
+### Security
+
+#### OWASP Top 10 Review & Fixes
+
+- **[A01 Broken Access Control / Path Traversal]** `setup_wizard.py`: Sanitise the
+  device name obtained from the network before using it to construct file-system paths.
+  A maliciously crafted device name (e.g. `../../etc/passwd`) could previously escape
+  the intended output directory.  The name is now reduced to word characters and
+  hyphens via `re.sub` before being interpolated into `Path` objects.
+
+- **[A03 Injection]** `cli.py`: Changed `str.split("=")` to `str.split("=", 1)` when
+  parsing `KEY=VALUE` CLI arguments.  The previous form raised an unhandled
+  `ValueError` for values that contained a `=` character (e.g. base64-encoded tokens),
+  which could be triggered by user input.
+
+- **[A08 Software and Data Integrity]** `publish.yml`: Pinned `actions/checkout` and
+  `actions/setup-python` to immutable commit SHAs instead of mutable version tags,
+  preventing a supply-chain attack via tag mutation.
+
+#### Dependabot (OWASP A06 – Vulnerable and Outdated Components)
+
+- Added `.github/dependabot.yml` to keep Python (`pip`) and GitHub Actions
+  dependencies automatically up to date with weekly pull requests.
+
+#### OSV Vulnerability Scanning (osv.dev)
+
+- Added `.github/workflows/security.yml` running
+  [google/osv-scanner-action](https://github.com/google/osv-scanner-action) against
+  the `uv.lock` lockfile on every push/PR to `main` and on a weekly schedule.
+  Results are uploaded to the GitHub Security tab as SARIF.
+
 ## [0.3.0] - 2025-01-27 - **Major Home Assistant Integration Release**
 
 ### Added - **🏠 Home Assistant Integration Features**

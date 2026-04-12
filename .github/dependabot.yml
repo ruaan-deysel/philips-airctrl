@@ -1,0 +1,24 @@
+version: 2
+
+updates:
+  # Keep Python dependencies up to date (OWASP A06 – vulnerable/outdated components)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "python"
+
+  # Keep GitHub Actions up to date (OWASP A08 – software and data integrity)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"

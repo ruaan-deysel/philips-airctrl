@@ -303,6 +303,32 @@ class TestConfigurationStep:
             assert len(yaml_files) == 1
             assert len(summary_files) == 1
 
+    @pytest.mark.asyncio
+    async def test_path_traversal_device_name_is_sanitized(self, tmp_path):
+        """Device names with path-traversal sequences must not escape the output dir."""
+        wizard = SetupWizard()
+        # Simulate a device whose name contains path-traversal characters
+        wizard.selected_device = _make_device(name="../../etc/passwd")
+        wizard.device_info = _make_report()
+
+        with (
+            patch("philips_airctrl.setup_wizard.click"),
+            patch("philips_airctrl.setup_wizard.Path") as mock_path_class,
+        ):
+            mock_path_class.home.return_value = tmp_path
+            await wizard._configuration_step()
+
+            output_dir = tmp_path / "philips_airpurifier_config"
+            assert output_dir.exists()
+            # All created files must live inside the expected output directory
+            for f in output_dir.iterdir():
+                assert output_dir in f.parents or f.parent == output_dir
+            # The sanitized name must not contain any path separators
+            for f in output_dir.iterdir():
+                assert "/" not in f.name
+                assert "\\" not in f.name
+                assert ".." not in f.name
+
 
 class TestNextSteps:
     def test_no_open(self):

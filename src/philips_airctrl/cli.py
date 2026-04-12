@@ -307,7 +307,7 @@ async def async_main() -> None:
             data: dict[str, str | int | bool] = {}
             failed = False
             for e in args.values:
-                k, v = e.split("=")
+                k, v = e.split("=", 1)  # maxsplit=1 allows "=" inside the value (OWASP A03)
                 if v == "true":
                     data[k] = True
                 elif v == "false":
