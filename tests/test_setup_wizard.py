@@ -320,11 +320,10 @@ class TestConfigurationStep:
 
             output_dir = tmp_path / "philips_airpurifier_config"
             assert output_dir.exists()
-            # All created files must live inside the expected output directory
+            # All created files must live inside the expected output directory and
+            # the sanitized name must not contain any path separators.
             for f in output_dir.iterdir():
                 assert output_dir in f.parents or f.parent == output_dir
-            # The sanitized name must not contain any path separators
-            for f in output_dir.iterdir():
                 assert "/" not in f.name
                 assert "\\" not in f.name
                 assert ".." not in f.name
