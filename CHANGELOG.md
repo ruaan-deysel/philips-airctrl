@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: This is an enhanced fork of the original aioairctrl package with significant additional features for Home Assistant integration. Version numbers start from 0.3.0 to distinguish from the original package.
 
+## [1.1.0] - 2026-05-29
+
+### Added
+- **Observe-free one-shot status reads** (#6) - `Client.get_status()` now accepts
+  an `observe: bool = True` parameter. When `observe=False`, the CoAP observation
+  used to elicit a response is cancelled immediately after the first reply, so no
+  lingering server-side subscription remains. This is intended for discovery
+  probes, bounded polling, and single status checks on devices with a limited
+  number of observer slots. The default (`observe=True`) preserves the previous
+  behaviour for full backward compatibility.
+
+### Changed
+- One-shot callers (`discover`, `device-info`, and the `status` CLI command) now
+  use `get_status(observe=False)` so they no longer leave observations registered
+  on the device.
+
 ## [0.3.0] - 2025-01-27 - **Major Home Assistant Integration Release**
 
 ### Added - **🏠 Home Assistant Integration Features**

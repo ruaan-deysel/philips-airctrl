@@ -155,3 +155,4 @@ philips_airpurifier_config/
 # Local configuration files
 config.local.*
 .env.local
+.claude/settings.json

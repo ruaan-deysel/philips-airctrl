@@ -55,6 +55,7 @@ class DeviceDiscovery:
     async def scan_ip(self, ip: str) -> DeviceInfo | None:
         """Scan a single IP address for a Philips air purifier."""
         try:
+
             def _udp_probe(target: str) -> bool:
                 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
                     sock.settimeout(1.0)
@@ -72,7 +73,7 @@ class DeviceDiscovery:
 
                 try:
                     status, _ = await asyncio.wait_for(
-                        client.get_status(),
+                        client.get_status(observe=False),
                         timeout=self.timeout,
                     )
 

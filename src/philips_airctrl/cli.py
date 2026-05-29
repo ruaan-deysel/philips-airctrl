@@ -290,7 +290,7 @@ async def async_main() -> None:
     try:
         client = await CoAPClient.create(host=args.host, port=args.port)
         if args.command == "status":
-            status, max_age = await client.get_status()
+            status, max_age = await client.get_status(observe=False)
             if args.json:
                 print(json.dumps(status, indent=2))
             else:

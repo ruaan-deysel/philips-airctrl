@@ -668,7 +668,7 @@ class DeviceInfoExtractor:
         client = await Client.create(host=self.host, port=self.port)
 
         try:
-            status, max_age = await client.get_status()
+            status, max_age = await client.get_status(observe=False)
 
             report = DeviceReport(
                 connection=ConnectionInfo(

@@ -74,7 +74,26 @@ class Client:
         logger.debug("synced: %s", client_key)
         self._encryption_context.set_client_key(client_key)
 
-    async def get_status(self) -> tuple[dict[str, Any], int]:
+    async def get_status(self, observe: bool = True) -> tuple[dict[str, Any], int]:
+        """Fetch the device status once.
+
+        Philips devices only serve the status resource through the CoAP Observe
+        mechanism, so the Observe option is always sent to elicit a response.
+        The ``observe`` flag controls what happens to that registration after
+        the first response is received.
+
+        Args:
+            observe: When ``True`` (the default), the registered observation is
+                left in place, preserving the historical behaviour. Pass
+                ``observe=False`` for one-shot reads (discovery probes, bounded
+                polling, single status checks) to immediately cancel the
+                observation after the first response. This avoids leaving a
+                lingering server-side subscription on devices that have a
+                limited number of observer slots.
+
+        Returns:
+            A tuple of the reported state dict and the CoAP ``max_age`` value.
+        """
         logger.debug("retrieving status")
         request = Message(
             code=GET,
@@ -82,11 +101,17 @@ class Client:
             uri=f"coap://{self.host}:{self.port}{self.STATUS_PATH}",
         )
         request.opt.observe = 0
+        requester = self._client_context.request(request)
         try:
-            response = await self._client_context.request(request).response
+            response = await requester.response
         except NetworkError:
             logger.error("network error while retrieving status")
             raise
+        if not observe:
+            # One-shot read: cancel the observation so no lingering
+            # server-side subscription remains on the device.
+            logger.debug("cancelling one-shot observation")
+            requester.observation.cancel()
         payload_encrypted = response.payload.decode()
         payload = self._encryption_context.decrypt(payload_encrypted)
         logger.debug("status: %s", payload)

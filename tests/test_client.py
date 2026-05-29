@@ -125,6 +125,45 @@ class TestClient:
         mock_context.request.assert_called_once()
         call_args = mock_context.request.call_args[0][0]
         assert call_args.opt.observe == 0
+        # Default observe=True leaves the registration in place (no cancel).
+        mock_requester.observation.cancel.assert_not_called()
+        mock_encryption.decrypt.assert_called_once_with("encrypted_payload")
+        assert status == {"power": True, "mode": "auto"}
+        assert max_age == 120
+
+    @pytest.mark.asyncio
+    async def test_get_status_without_observe(self):
+        client = Client("192.168.1.100")
+
+        mock_context = MagicMock()
+        mock_response = MagicMock()
+        mock_response.payload.decode.return_value = "encrypted_payload"
+        mock_response.opt.max_age = 120
+
+        mock_requester = MagicMock()
+
+        async def mock_response_coro():
+            return mock_response
+
+        mock_requester.response = mock_response_coro()
+        mock_context.request.return_value = mock_requester
+
+        mock_encryption = MagicMock()
+        decrypted_payload = '{"state": {"reported": {"power": true, "mode": "auto"}}}'
+        mock_encryption.decrypt.return_value = decrypted_payload
+
+        client._client_context = mock_context
+        client._encryption_context = mock_encryption
+
+        status, max_age = await client.get_status(observe=False)
+
+        mock_context.request.assert_called_once()
+        call_args = mock_context.request.call_args[0][0]
+        # The Observe option is still sent (the device requires it to respond),
+        # but the observation is immediately cancelled for a one-shot read so no
+        # lingering server-side subscription remains.
+        assert call_args.opt.observe == 0
+        mock_requester.observation.cancel.assert_called_once_with()
         mock_encryption.decrypt.assert_called_once_with("encrypted_payload")
         assert status == {"power": True, "mode": "auto"}
         assert max_age == 120
