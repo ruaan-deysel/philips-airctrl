@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.2.0] - 2026-07-02
 
 ### Added
+
 - **Plaintext `/sys/dev/info` support** (#7) - `CoAPClient` now exposes a
   `get_device_info()` method that reads the unencrypted `/sys/dev/info` CoAP
   resource without performing the sync handshake.  This is essential for
@@ -49,13 +50,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added - **Home Assistant Integration Features**
 
-- ** Automatic Device Discovery** - Network scanning for Philips air purifiers
-- ** Comprehensive Device Analysis** - Extract 70+ data points with capability detection
-- **🧙‍♂️ Interactive Setup Wizard** - User-friendly guided setup for non-technical users
-- ** Multiple Export Formats** - JSON and YAML output for easy integration
-- ** Home Assistant Configuration Generation** - Ready-to-use HA configs
-- ** Device Information Export** - Complete device analysis for integration development
-- ** Community Contribution Workflow** - Easy device info sharing for ha-philips-airpurifier project
+- **Automatic Device Discovery** - Network scanning for Philips air purifiers
+- **Comprehensive Device Analysis** - Extract 70+ data points with capability detection
+- **Interactive Setup Wizard** - User-friendly guided setup for non-technical users
+- **Multiple Export Formats** - JSON and YAML output for easy integration
+- **Home Assistant Configuration Generation** - Ready-to-use HA configs
+- **Device Information Export** - Complete device analysis for integration development
+- **Community Contribution Workflow** - Easy device info sharing for ha-philips-airpurifier project
 
 ### Added - **Development & Quality Improvements**
 
@@ -79,7 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Modernized code formatting with Black
 - Updated project metadata and maintainer information
 
-### Changed - **🛠️ Technical Improvements**
+### Changed - **Technical Improvements**
 
 - Improved error handling in client code
 - Fixed encryption key overflow handling
