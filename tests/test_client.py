@@ -446,3 +446,112 @@ class TestClient:
             mock_ctx_class.create_client_context.assert_called_once()
             assert client._encryption_context is not None
             mock_sync.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_init_method_sync_false(self):
+        """When sync=False, _init() must NOT call _sync()."""
+        with (
+            patch("philips_airctrl.coap.client.Context") as mock_ctx_class,
+            patch.object(Client, "_sync", new_callable=AsyncMock) as mock_sync,
+        ):
+            mock_ctx_class.create_client_context = AsyncMock(return_value=MagicMock())
+            client = Client("192.168.1.100")
+            await client._init(sync=False)
+
+            mock_ctx_class.create_client_context.assert_called_once()
+            assert client._encryption_context is not None
+            mock_sync.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_create_factory_method_sync_false(self):
+        """Client.create(..., sync=False) should skip the handshake."""
+        with patch.object(Client, "_init", new_callable=AsyncMock) as mock_init:
+            client = await Client.create("192.168.1.100", sync=False)
+            assert isinstance(client, Client)
+            mock_init.assert_called_once_with(sync=False)
+
+    @pytest.mark.asyncio
+    async def test_create_factory_method_sync_true_default(self):
+        """Client.create() without sync kwarg should perform the sync."""
+        with patch.object(Client, "_init", new_callable=AsyncMock) as mock_init:
+            client = await Client.create("192.168.1.100")
+            assert isinstance(client, Client)
+            mock_init.assert_called_once_with(sync=True)
+
+    def test_info_path_constant(self):
+        assert Client.INFO_PATH == "/sys/dev/info"
+
+    @pytest.mark.asyncio
+    async def test_get_device_info(self):
+        """get_device_info() sends a plain GET to INFO_PATH and returns parsed dict."""
+        client = Client("192.168.1.100")
+
+        mock_context = MagicMock()
+        mock_response = MagicMock()
+        device_info_payload = '{"modelid": "CX7550/01", "name": "My Fan", "device_id": "abc123"}'
+        mock_response.payload.decode.return_value = device_info_payload
+
+        mock_requester = MagicMock()
+
+        async def mock_response_coro():
+            return mock_response
+
+        mock_requester.response = mock_response_coro()
+        mock_context.request.return_value = mock_requester
+
+        client._client_context = mock_context
+
+        result = await client.get_device_info()
+
+        mock_context.request.assert_called_once()
+        call_args = mock_context.request.call_args[0][0]
+        # The request URI should point to INFO_PATH on the device host
+        assert call_args.get_request_uri().endswith(Client.INFO_PATH)
+        # No observe option should be set (plain GET, not an observe GET)
+        assert call_args.opt.observe is None
+        assert result == {"modelid": "CX7550/01", "name": "My Fan", "device_id": "abc123"}
+
+    @pytest.mark.asyncio
+    async def test_get_device_info_no_encryption(self):
+        """get_device_info() must NOT use the encryption context."""
+        client = Client("192.168.1.100")
+
+        mock_context = MagicMock()
+        mock_response = MagicMock()
+        mock_response.payload.decode.return_value = '{"modelid": "AC1715/10"}'
+
+        mock_requester = MagicMock()
+
+        async def mock_response_coro():
+            return mock_response
+
+        mock_requester.response = mock_response_coro()
+        mock_context.request.return_value = mock_requester
+
+        mock_encryption = MagicMock()
+        client._client_context = mock_context
+        client._encryption_context = mock_encryption
+
+        await client.get_device_info()
+
+        mock_encryption.decrypt.assert_not_called()
+        mock_encryption.encrypt.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_get_device_info_network_error(self):
+        """NetworkError from the transport is propagated by get_device_info()."""
+        client = Client("192.168.1.100")
+
+        mock_context = MagicMock()
+        mock_requester = MagicMock()
+
+        async def mock_response_coro():
+            raise NetworkError("connection failed")
+
+        mock_requester.response = mock_response_coro()
+        mock_context.request.return_value = mock_requester
+
+        client._client_context = mock_context
+
+        with pytest.raises(NetworkError):
+            await client.get_device_info()

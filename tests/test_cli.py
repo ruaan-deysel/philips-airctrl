@@ -9,6 +9,7 @@ import pytest
 from philips_airctrl.cli import (
     async_main,
     handle_device_info_command,
+    handle_device_info_raw_command,
     handle_discover_command,
     handle_setup_command,
     main,
@@ -578,3 +579,97 @@ class TestAsyncMainNoHost:
 
             await async_main()
             mock_print.assert_any_call("Error: Host is required for this command")
+
+
+class TestDeviceInfoRawParseArgs:
+    def test_device_info_raw(self):
+        args = parse_args(["device-info-raw", "-H", "192.168.1.100"])
+        assert args.command == "device-info-raw"
+        assert args.host == "192.168.1.100"
+        assert args.port == 5683
+
+    def test_device_info_raw_custom_port(self):
+        args = parse_args(["device-info-raw", "-H", "192.168.1.100", "-P", "5684"])
+        assert args.port == 5684
+
+
+class TestHandleDeviceInfoRawCommand:
+    @pytest.mark.asyncio
+    async def test_prints_json(self):
+        mock_client = AsyncMock()
+        mock_client.get_device_info.return_value = {
+            "modelid": "CX7550/01",
+            "name": "My Fan",
+            "device_id": "abc123",
+        }
+
+        with (
+            patch("philips_airctrl.cli.CoAPClient.create", return_value=mock_client),
+            patch("builtins.print") as mock_print,
+        ):
+            args = MagicMock()
+            args.host = "192.168.1.100"
+            args.port = 5683
+
+            await handle_device_info_raw_command(args)
+
+            mock_client.get_device_info.assert_called_once()
+            mock_client.shutdown.assert_called_once()
+            mock_print.assert_called_once()
+            output = json.loads(mock_print.call_args[0][0])
+            assert output["modelid"] == "CX7550/01"
+
+    @pytest.mark.asyncio
+    async def test_create_called_with_sync_false(self):
+        """device-info-raw must create the client without the sync handshake."""
+        mock_client = AsyncMock()
+        mock_client.get_device_info.return_value = {"modelid": "AC1715/10"}
+
+        with (
+            patch("philips_airctrl.cli.CoAPClient.create", return_value=mock_client) as mock_create,
+            patch("builtins.print"),
+        ):
+            args = MagicMock()
+            args.host = "192.168.1.100"
+            args.port = 5683
+
+            await handle_device_info_raw_command(args)
+
+            mock_create.assert_called_once_with(host="192.168.1.100", port=5683, sync=False)
+
+    @pytest.mark.asyncio
+    async def test_shutdown_called_on_error(self):
+        """shutdown() must be called even when get_device_info() raises."""
+        mock_client = AsyncMock()
+        mock_client.get_device_info.side_effect = RuntimeError("boom")
+
+        with (
+            patch("philips_airctrl.cli.CoAPClient.create", return_value=mock_client),
+        ):
+            args = MagicMock()
+            args.host = "192.168.1.100"
+            args.port = 5683
+
+            with pytest.raises(RuntimeError):
+                await handle_device_info_raw_command(args)
+
+            mock_client.shutdown.assert_called_once()
+
+
+class TestAsyncMainDeviceInfoRaw:
+    @pytest.mark.asyncio
+    async def test_device_info_raw_dispatched(self):
+        with (
+            patch("philips_airctrl.cli.parse_args") as mock_parse,
+            patch(
+                "philips_airctrl.cli.handle_device_info_raw_command",
+                new_callable=AsyncMock,
+            ) as mock_handler,
+        ):
+            mock_args = MagicMock()
+            mock_args.debug = False
+            mock_args.command = "device-info-raw"
+            mock_parse.return_value = mock_args
+
+            await async_main()
+            mock_handler.assert_called_once_with(mock_args)

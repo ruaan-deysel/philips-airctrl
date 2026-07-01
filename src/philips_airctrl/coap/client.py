@@ -26,6 +26,7 @@ class Client:
     STATUS_PATH = "/sys/dev/status"
     CONTROL_PATH = "/sys/dev/control"
     SYNC_PATH = "/sys/dev/sync"
+    INFO_PATH = "/sys/dev/info"
 
     def __init__(self, host: str, port: int = 5683) -> None:
         self.host = host
@@ -33,15 +34,17 @@ class Client:
         self._client_context: Context | None = None
         self._encryption_context: EncryptionContext | None = None
 
-    async def _init(self) -> None:
+    async def _init(self, sync: bool = True) -> None:
         self._client_context = await Context.create_client_context()
         self._encryption_context = EncryptionContext()
-        await self._sync()
+        if sync:
+            await self._sync()
 
     @classmethod
     async def create(cls, *args: Any, **kwargs: Any) -> Client:
+        sync = kwargs.pop("sync", True)
         obj = cls(*args, **kwargs)
-        await obj._init()
+        await obj._init(sync=sync)
         return obj
 
     async def __aenter__(self) -> Client:
@@ -190,3 +193,34 @@ class Client:
 
         logger.error("set_control_value failed: %s", data)
         return False
+
+    async def get_device_info(self) -> dict[str, Any]:
+        """Read the plaintext /sys/dev/info resource without encryption.
+
+        This endpoint is available on all Philips firmware variants and does not
+        require the encrypted sync handshake.  It is particularly useful for
+        push-only firmware (e.g. ``AWS_Philips_AIR_Combo`` used by CX7550/01)
+        that never answers a direct ``GET`` of ``/sys/dev/status``.
+
+        Returns:
+            A dict containing the device identity fields returned by the device
+            (typically ``modelid``, ``name``, ``device_id``, etc.).
+
+        Raises:
+            aiocoap.error.NetworkError: If the device is unreachable.
+        """
+        logger.debug("retrieving device info")
+        request = Message(
+            code=GET,
+            transport_tuning=Unreliable,
+            uri=f"coap://{self.host}:{self.port}{self.INFO_PATH}",
+        )
+        requester = self._client_context.request(request)
+        try:
+            response = await requester.response
+        except NetworkError:
+            logger.error("network error while retrieving device info")
+            raise
+        payload = response.payload.decode()
+        logger.debug("device info: %s", payload)
+        return dict(json.loads(payload))

@@ -7,9 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: This is an enhanced fork of the original aioairctrl package with significant additional features for Home Assistant integration. Version numbers start from 0.3.0 to distinguish from the original package.
 
+## [1.2.0] - 2026-07-02
+
+### Added
+- **Plaintext `/sys/dev/info` support** (#7) - `CoAPClient` now exposes a
+  `get_device_info()` method that reads the unencrypted `/sys/dev/info` CoAP
+  resource without performing the sync handshake.  This is essential for
+  push-only firmware variants (e.g. `AWS_Philips_AIR_Combo` used by CX7550/01)
+  that never answer a direct `GET` of `/sys/dev/status`.
+- **`sync=False` construction path** - `Client.create(..., sync=False)` (and the
+  underlying `_init(sync=False)`) creates the aiocoap transport context without
+  running the encrypted sync handshake, enabling identification of push-only
+  devices without triggering the handshake.  The default `sync=True` preserves
+  full backward compatibility for all existing callers.
+- **`device-info-raw` CLI subcommand** - New CLI command
+  `philips-airctrl device-info-raw -H <host>` reads the plaintext
+  `/sys/dev/info` endpoint and prints the result as JSON.  Uses `sync=False`
+  internally so it works on all firmware variants.
+- **`INFO_PATH` constant** (`/sys/dev/info`) added alongside the existing path
+  constants on the `Client` class.
+
 ## [1.1.0] - 2026-05-29
 
 ### Added
+
 - **Observe-free one-shot status reads** (#6) - `Client.get_status()` now accepts
   an `observe: bool = True` parameter. When `observe=False`, the CoAP observation
   used to elicit a response is cancelled immediately after the first reply, so no
@@ -19,22 +40,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behaviour for full backward compatibility.
 
 ### Changed
+
 - One-shot callers (`discover`, `device-info`, and the `status` CLI command) now
   use `get_status(observe=False)` so they no longer leave observations registered
   on the device.
 
 ## [0.3.0] - 2025-01-27 - **Major Home Assistant Integration Release**
 
-### Added - **🏠 Home Assistant Integration Features**
-- **🔍 Automatic Device Discovery** - Network scanning for Philips air purifiers
-- **📊 Comprehensive Device Analysis** - Extract 70+ data points with capability detection
-- **🧙‍♂️ Interactive Setup Wizard** - User-friendly guided setup for non-technical users
-- **📁 Multiple Export Formats** - JSON and YAML output for easy integration
-- **🏠 Home Assistant Configuration Generation** - Ready-to-use HA configs
-- **📋 Device Information Export** - Complete device analysis for integration development
-- **🤝 Community Contribution Workflow** - Easy device info sharing for ha-philips-airpurifier project
+### Added - **Home Assistant Integration Features**
 
-### Added - **🛠️ Development & Quality Improvements**
+- ** Automatic Device Discovery** - Network scanning for Philips air purifiers
+- ** Comprehensive Device Analysis** - Extract 70+ data points with capability detection
+- **🧙‍♂️ Interactive Setup Wizard** - User-friendly guided setup for non-technical users
+- ** Multiple Export Formats** - JSON and YAML output for easy integration
+- ** Home Assistant Configuration Generation** - Ready-to-use HA configs
+- ** Device Information Export** - Complete device analysis for integration development
+- ** Community Contribution Workflow** - Easy device info sharing for ha-philips-airpurifier project
+
+### Added - **Development & Quality Improvements**
+
 - Comprehensive test suite with 75%+ coverage
 - Type hints throughout the codebase
 - Modern pyproject.toml configuration
@@ -44,7 +68,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Development documentation
 - Code quality tools (Black, Flake8, MyPy)
 
-### Changed - **🔄 Fork & Package Changes**
+### Changed - **Fork & Package Changes**
+
 - **BREAKING**: Package renamed to `philips-airctrl` to distinguish from original
 - **BREAKING**: No longer available on PyPI - must install from source
 - **BREAKING**: CLI argument structure updated for new commands
@@ -55,11 +80,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated project metadata and maintainer information
 
 ### Changed - **🛠️ Technical Improvements**
+
 - Improved error handling in client code
 - Fixed encryption key overflow handling
 - Enhanced async/await patterns throughout codebase
 
 ### Fixed
+
 - Fixed bare except clause in client.py
 - Fixed f-string without placeholders
 - Fixed module imports organization
@@ -67,11 +94,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved async/await patterns in tests
 
 ### Security
+
 - Updated dependencies to latest versions
 - Added security scanning configuration
 - Improved error handling to prevent information leakage
 
 ### Development
+
 - Added comprehensive test suite for all modules
 - Set up automated testing with pytest
 - Added code coverage reporting
@@ -81,6 +110,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.5] - Previous Release
 
 ### Features
+
 - Basic CoAP client functionality
 - Encrypted communication with Philips air purifiers
 - Command-line interface
@@ -88,6 +118,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Device observation capabilities
 
 ### Known Issues
+
 - Limited test coverage
 - No type hints
 - Basic error handling

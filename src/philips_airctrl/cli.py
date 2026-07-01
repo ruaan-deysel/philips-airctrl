@@ -188,6 +188,28 @@ def parse_args(args: list[str] | None = None) -> argparse.Namespace:
         help="Interactive setup wizard for Home Assistant integration",
     )
 
+    # Device info raw command (plaintext /sys/dev/info, no encryption)
+    parser_device_info_raw = subparsers.add_parser(
+        "device-info-raw",
+        help="Read plaintext /sys/dev/info resource (no encryption, suits push-only firmware)",
+    )
+    parser_device_info_raw.add_argument(
+        "-H",
+        "--host",
+        dest="host",
+        type=str,
+        required=True,
+        help="Address of CoAP device",
+    )
+    parser_device_info_raw.add_argument(
+        "-P",
+        "--port",
+        dest="port",
+        type=int,
+        default=5683,
+        help="Port of CoAP device (default: %(default)s)",
+    )
+
     return parser.parse_args(args)
 
 
@@ -268,6 +290,21 @@ async def handle_setup_command() -> None:
     await wizard.run()
 
 
+async def handle_device_info_raw_command(args: argparse.Namespace) -> None:
+    """Handle the device-info-raw command.
+
+    Reads the plaintext ``/sys/dev/info`` resource from the device without
+    performing the encrypted sync handshake.  This is safe to use on push-only
+    firmware variants that never answer a direct read of ``/sys/dev/status``.
+    """
+    client = await CoAPClient.create(host=args.host, port=args.port, sync=False)
+    try:
+        info = await client.get_device_info()
+        print(json.dumps(info, indent=2))
+    finally:
+        await client.shutdown()
+
+
 async def async_main() -> None:
     args = parse_args()
     if args.debug:
@@ -280,6 +317,9 @@ async def async_main() -> None:
         return
     if args.command == "setup":
         await handle_setup_command()
+        return
+    if args.command == "device-info-raw":
+        await handle_device_info_raw_command(args)
         return
 
     if not hasattr(args, "host") or not args.host:
