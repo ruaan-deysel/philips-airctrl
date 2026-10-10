@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 > **Note**: This is an enhanced fork of the original aioairctrl package with significant additional features for Home Assistant integration. Version numbers start from 0.3.0 to distinguish from the original package.
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Fixed
+
 ## [1.2.0] - 2026-07-02
 
 ### Added
