@@ -29,7 +29,7 @@ Tested with:
 ### From Source
 
 ```bash
-git clone https://github.com/domalab/philips-airctrl.git
+git clone https://github.com/tinkerologie/philips-airctrl.git
 cd philips-airctrl
 uv sync
 ```
@@ -37,7 +37,7 @@ uv sync
 ### With pip
 
 ```bash
-git clone https://github.com/domalab/philips-airctrl.git
+git clone https://github.com/tinkerologie/philips-airctrl.git
 cd philips-airctrl
 pip install .
 ```
@@ -237,7 +237,7 @@ The device-info and setup commands produce technical reports that developers use
 To contribute:
 
 1. Run `philips-airctrl setup` and follow the prompts
-2. Open an issue in the relevant integration repo (e.g. [ha-philips-airpurifier](https://github.com/domalab/ha-philips-airpurifier))
+2. Open an issue in the relevant integration repo (e.g. [ha-philips-airpurifier](https://github.com/tinkerologie/ha-philips-airpurifier))
 3. Attach the generated JSON file and include your device model number
 
 ## Project Structure

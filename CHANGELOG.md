@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Update repository URLs and documentation references to tinkerologie organization.
+
 ### Fixed
 
 ## [1.2.0] - 2026-07-02
@@ -49,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   behaviour for full backward compatibility.
 
 ### Changed
+
+- Update repository URLs and documentation references to tinkerologie organization.
 
 - One-shot callers (`discover`, `device-info`, and the `status` CLI command) now
   use `get_status(observe=False)` so they no longer leave observations registered

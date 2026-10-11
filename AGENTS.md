@@ -7,7 +7,7 @@
 | Key | Value |
 | --- | --- |
 | **Name** | Philips AirCtrl Python Library |
-| **Repository** | `github.com/ruaan-deysel/philips-airctrl` |
+| **Repository** | `github.com/tinkerologie/philips-airctrl` |
 | **Default Branch** | `main` |
 | **Description** | Python client library for communicating with Philips air purifiers over CoAP and HTTP. |
 
