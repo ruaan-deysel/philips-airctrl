@@ -57,10 +57,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/domalab/philips-airctrl"
-Repository = "https://github.com/domalab/philips-airctrl"
-Issues = "https://github.com/domalab/philips-airctrl/issues"
-Changelog = "https://github.com/domalab/philips-airctrl/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/tinkerologie/philips-airctrl"
+Repository = "https://github.com/tinkerologie/philips-airctrl"
+Issues = "https://github.com/tinkerologie/philips-airctrl/issues"
+Changelog = "https://github.com/tinkerologie/philips-airctrl/blob/main/CHANGELOG.md"
 
 [project.scripts]
 philips-airctrl = "philips_airctrl.__main__:main"
