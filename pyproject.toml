@@ -3,7 +3,7 @@ name = "philips-airctrl"
 dynamic = ["version"]
 description = "Enhanced Philips air purifier library with Home Assistant integration, device discovery, and setup wizard"
 readme = "README.md"
-license = {text = "MIT"}
+license = {text = "Apache-2.0"}
 authors = [
     {name = "betaboon"},
     {name = "Ruaan Deysel", email = "ruaan@domalab.com"},
@@ -14,7 +14,7 @@ maintainers = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
+    "License :: OSI Approved :: Apache Software License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.11",
